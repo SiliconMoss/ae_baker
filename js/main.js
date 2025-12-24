@@ -57,6 +57,12 @@
         updateStatus("Scanning...", "");
 
         csInterface.evalScript('propertyBaker.getCommonProperties()', function (result) {
+            if (!result) {
+                updateStatus("Err: Empty response from AE", "error");
+                console.error("refreshSelection: Received empty result from ExtendScript.");
+                return;
+            }
+
             try {
                 var data = JSON.parse(result);
 
@@ -72,8 +78,11 @@
                 updateStatus("Ready", "success");
 
             } catch (e) {
-                updateStatus("Err: " + e.message, "error");
-                console.error(e);
+                // Show a snippet of the broken result in the status bar
+                var snippet = result.length > 20 ? result.substring(0, 17) + "..." : result;
+                updateStatus("Parse Err: " + snippet, "error");
+                console.error("JSON Parse Error:", e);
+                console.error("Raw result from AE:", result);
             }
         });
     }
@@ -198,6 +207,10 @@
 
         var script = 'propertyBaker.getPropertyStatus("' + prop.path + '", "' + (prop.isEssential || false) + '")';
         csInterface.evalScript(script, function (result) {
+            if (!result) {
+                console.warn("onPropertySelected: Empty response for property status.");
+                return;
+            }
             try {
                 var status = JSON.parse(result);
 
@@ -216,7 +229,8 @@
                 bakeBtn.disabled = false;
 
             } catch (e) {
-                console.error(e);
+                console.error("Status Parse Error:", e);
+                console.error("Raw status result:", result);
             }
         });
     }
