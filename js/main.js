@@ -59,7 +59,12 @@
         csInterface.evalScript('propertyBaker.getCommonProperties()', function (result) {
             if (!result) {
                 updateStatus("Err: Empty response from AE", "error");
-                console.error("refreshSelection: Received empty result from ExtendScript.");
+                return;
+            }
+
+            if (result.indexOf("EXTENDSCRIPT_ERROR:") === 0) {
+                updateStatus(result.replace("EXTENDSCRIPT_ERROR: ", ""), "error");
+                console.error("AE Side Error:", result);
                 return;
             }
 

@@ -58,107 +58,111 @@ var propertyBaker = (function () {
     return {
         // Returns common properties tree across all selected layers
         getCommonProperties: function () {
-            var layers = getSelectedLayers();
-            if (!layers || layers.length === 0) return JSON.stringify({ error: "No layers selected" });
+            try {
+                var layers = getSelectedLayers();
+                if (!layers || layers.length === 0) return JSON.stringify({ error: "No layers selected" });
 
-            var firstLayer = layers[0];
+                var firstLayer = layers[0];
 
-            function traverseTree(propGroup) {
-                var items = [];
-                var nameMap = {}; // To merge groups with the same name
+                function traverseTree(propGroup) {
+                    var items = [];
+                    var nameMap = {}; // To merge groups with the same name
 
-                for (var i = 1; i <= propGroup.numProperties; i++) {
-                    var prop = propGroup.property(i);
+                    for (var i = 1; i <= propGroup.numProperties; i++) {
+                        var prop = propGroup.property(i);
 
-                    // Skip Essential Properties group during normal traversal
-                    // (MatchName check + Name check for safety)
-                    if (prop.matchName === "ADBE Essential Properties" || prop.name === "Essential Properties") continue;
+                        // Skip Essential Properties group during normal traversal
+                        // (MatchName check + Name check for safety)
+                        if (prop.matchName === "ADBE Essential Properties" || prop.name === "Essential Properties") continue;
 
-                    var path = getPropertyPath(prop);
+                        var path = getPropertyPath(prop);
 
-                    // Verify property exists on all other layers
-                    var existsOnAll = true;
-                    for (var j = 1; j < layers.length; j++) {
-                        if (!getPropertyByPath(layers[j], path)) {
-                            existsOnAll = false;
-                            break;
+                        // Verify property exists on all other layers
+                        var existsOnAll = true;
+                        for (var j = 1; j < layers.length; j++) {
+                            if (!getPropertyByPath(layers[j], path)) {
+                                existsOnAll = false;
+                                break;
+                            }
                         }
-                    }
-                    if (!existsOnAll) continue;
+                        if (!existsOnAll) continue;
 
-                    if (prop.propertyType === PropertyType.PROPERTY) {
-                        // Only add if modified
-                        if (isPropertyModified(prop)) {
-                            items.push({
-                                name: prop.name,
-                                matchName: prop.matchName,
-                                path: path,
-                                type: "property"
-                            });
-                        }
-                    } else {
-                        var children = traverseTree(prop);
-                        if (children.length > 0) {
-                            // Check if a group with this name already exists at this level
-                            if (nameMap[prop.name]) {
-                                // Merge children
-                                var existingGroup = nameMap[prop.name];
-                                existingGroup.children = existingGroup.children.concat(children);
-                            } else {
-                                var newGroup = {
+                        if (prop.propertyType === PropertyType.PROPERTY) {
+                            // Only add if modified
+                            if (isPropertyModified(prop)) {
+                                items.push({
                                     name: prop.name,
                                     matchName: prop.matchName,
                                     path: path,
-                                    type: "group",
-                                    children: children
-                                };
-                                items.push(newGroup);
-                                nameMap[prop.name] = newGroup;
+                                    type: "property"
+                                });
+                            }
+                        } else {
+                            var children = traverseTree(prop);
+                            if (children.length > 0) {
+                                // Check if a group with this name already exists at this level
+                                if (nameMap[prop.name]) {
+                                    // Merge children
+                                    var existingGroup = nameMap[prop.name];
+                                    existingGroup.children = existingGroup.children.concat(children);
+                                } else {
+                                    var newGroup = {
+                                        name: prop.name,
+                                        matchName: prop.matchName,
+                                        path: path,
+                                        type: "group",
+                                        children: children
+                                    };
+                                    items.push(newGroup);
+                                    nameMap[prop.name] = newGroup;
+                                }
                             }
                         }
                     }
+                    return items;
                 }
-                return items;
-            }
 
-            var tree = traverseTree(firstLayer);
+                var tree = traverseTree(firstLayer);
 
-            // Add Essential Properties manually (Essential Graphics)
-            try {
-                if (firstLayer.essentialProperty && firstLayer.essentialProperty.numProperties > 0) {
-                    var eGroup = {
-                        name: "Essential Graphics",
-                        type: "group",
-                        children: []
-                    };
-                    for (var i = 1; i <= firstLayer.essentialProperty.numProperties; i++) {
-                        var eProp = firstLayer.essentialProperty(i);
-                        var eName = eProp.name;
+                // Add Essential Properties manually (Essential Graphics)
+                try {
+                    if (firstLayer.essentialProperty && firstLayer.essentialProperty.numProperties > 0) {
+                        var eGroup = {
+                            name: "Essential Graphics",
+                            type: "group",
+                            children: []
+                        };
+                        for (var i = 1; i <= firstLayer.essentialProperty.numProperties; i++) {
+                            var eProp = firstLayer.essentialProperty(i);
+                            var eName = eProp.name;
 
-                        // Check if modified (any keyframes or non-default?)
-                        // Essential properties usually count as modified if they exist
-                        var modified = (eProp.numKeys > 0) || (eProp.expression !== "");
+                            // Check if modified (any keyframes or non-default?)
+                            // Essential properties usually count as modified if they exist
+                            var modified = (eProp.numKeys > 0) || (eProp.expression !== "");
 
-                        var existsOnAll = true;
-                        for (var j = 1; j < layers.length; j++) {
-                            try { if (!layers[j].essentialProperty(eName)) existsOnAll = false; } catch (e) { existsOnAll = false; }
+                            var existsOnAll = true;
+                            for (var j = 1; j < layers.length; j++) {
+                                try { if (!layers[j].essentialProperty(eName)) existsOnAll = false; } catch (e) { existsOnAll = false; }
+                            }
+
+                            if (existsOnAll && (modified || true)) { // Showing all common essentials for now as they are often externalized for a reason
+                                eGroup.children.push({
+                                    name: eName,
+                                    matchName: eName,
+                                    path: "Essential|" + eName,
+                                    type: "property",
+                                    isEssential: true
+                                });
+                            }
                         }
-
-                        if (existsOnAll && (modified || true)) { // Showing all common essentials for now as they are often externalized for a reason
-                            eGroup.children.push({
-                                name: eName,
-                                matchName: eName,
-                                path: "Essential|" + eName,
-                                type: "property",
-                                isEssential: true
-                            });
-                        }
+                        if (eGroup.children.length > 0) tree.push(eGroup);
                     }
-                    if (eGroup.children.length > 0) tree.push(eGroup);
-                }
-            } catch (e) { }
+                } catch (e) { }
 
-            return JSON.stringify({ layers: layers.length, tree: tree });
+                return JSON.stringify({ layers: layers.length, tree: tree });
+            } catch (err) {
+                return "EXTENDSCRIPT_ERROR: " + err.toString() + " (Line: " + err.line + ")";
+            }
         },
 
         // Gets info about a specific property on selected layers

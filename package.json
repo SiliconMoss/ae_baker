@@ -1,6 +1,6 @@
 {
   "name": "ae-property-baker",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "After Effects Property Baker & Expression Manager",
   "main": "index.html",
   "scripts": {
