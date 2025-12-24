@@ -2,7 +2,8 @@
 
 A compact and efficient After Effects panel for baking property keyframes and managing expressions across multiple layers.
 
-![AE Property Baker UI](https://raw.githubusercontent.com/username/ae_baker/main/preview.png)
+![AE Property Baker UI](https://github.com/user-attachments/assets/77556f22-54a5-4914-b613-7eded509bb4c)
+
 
 ## Features
 
@@ -36,6 +37,7 @@ A compact and efficient After Effects panel for baking property keyframes and ma
 3. Select a property from the tree.
 4. Use the **🎯 Bake** button to set a keyframe at the current time.
 5. Use the **Enable** / **Disable** buttons to toggle expressions.
+
 
 ## License
 
