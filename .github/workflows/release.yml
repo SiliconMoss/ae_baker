@@ -12,29 +12,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up ZXP packaging
+      - name: Download ZXPSignCmd
         run: |
-          # Create a temporary directory for packaging
-          mkdir -p build/ae_baker
-          cp -r CSXS index.html styles.css js jsx build/ae_baker/
-          # Remove .debug if it exists in the copy
-          rm -f build/ae_baker/.debug
+          mkdir -p bin
+          curl -L -o bin/ZXPSignCmd "https://github.com/Adobe-CEP/CEP-Resources/raw/master/ZXPSignCmd/64bit/linux/ZXPSignCmd"
+          chmod +x bin/ZXPSignCmd
 
-      - name: Package ZXP
-        uses: freeform-systems/adobe-extension-builder-action@v1.1.1
-        with:
-          extension-id: "com.antigravity.ae_baker"
-          extension-version: ${{ github.ref_name }}
-          input-folder: "build/ae_baker"
-          output-file: "ae_baker_${{ github.ref_name }}.zxp"
-          # For public releases, you'd eventually want a real certificate
-          # For now, this action can handle unsigned or self-signed packaging
-          p12-password: "password" 
+      - name: Prepare Extension Folder
+        run: |
+          mkdir -p dist/ae_baker
+          cp -r CSXS index.html styles.css js jsx dist/ae_baker/
+          # Clean up any development-only files
+          rm -f dist/ae_baker/.debug
+
+      - name: Create Self-Signed Certificate
+        run: |
+          ./bin/ZXPSignCmd -selfSignedCert US NY "Antigravity" "AE Baker" password cert.p12
+          
+      - name: Sign and Package ZXP
+        run: |
+          ./bin/ZXPSignCmd -sign dist/ae_baker ae_baker_${{ github.ref_name }}.zxp cert.p12 password -tsa http://timestamp.digicert.com
 
       - name: Create Release
-        id: create_release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: "ae_baker_${{ github.ref_name }}.zxp"
           generate_release_notes: true
