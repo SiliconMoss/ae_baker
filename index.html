@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AE Property Baker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row info-row">
+            <div class="info-group">
+                <span class="info-label">Layers:</span>
+                <span class="info-value" id="layerCount">0</span>
+                <span class="divider">|</span>
+                <span id="selectedPropName" class="selected-prop-text">Pick a property</span>
+            </div>
+            <button id="refreshBtn" class="btn btn-refresh" title="Force Refresh">🔄</button>
+        </div>
+
+        <section class="properties-section">
+            <div class="section-label-minimal">Common properties of selected layers</div>
+            <div id="propertyTree" class="property-tree">
+                <div class="tree-placeholder">Select layers...</div>
+            </div>
+        </section>
+
+        <section class="actions-section">
+            <div class="row actions-row">
+                <button id="bakeBtn" class="btn btn-primary" disabled title="Bake Keyframe at CTI">🎯 Bake</button>
+                <button id="enableExprBtn" class="btn btn-success" disabled>Enable Expr</button>
+                <button id="disableExprBtn" class="btn btn-warning" disabled>Disable Expr</button>
+            </div>
+        </section>
+
+        <div class="footer-row">
+            <div id="propertyInfo" class="property-info-tag"></div>
+            <div id="statusMessage" class="status-message">Ready</div>
+        </div>
+    </div>
+
+    <script src="jsx/CSInterface.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

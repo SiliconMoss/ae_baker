@@ -1,0 +1,42 @@
+name: Build and Release ZXP
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up ZXP packaging
+        run: |
+          # Create a temporary directory for packaging
+          mkdir -p build/ae_baker
+          cp -r CSXS index.html styles.css js jsx build/ae_baker/
+          # Remove .debug if it exists in the copy
+          rm -f build/ae_baker/.debug
+
+      - name: Package ZXP
+        uses: freeform-systems/adobe-extension-builder-action@v1.1.1
+        with:
+          extension-id: "com.antigravity.ae_baker"
+          extension-version: ${{ github.ref_name }}
+          input-folder: "build/ae_baker"
+          output-file: "ae_baker_${{ github.ref_name }}.zxp"
+          # For public releases, you'd eventually want a real certificate
+          # For now, this action can handle unsigned or self-signed packaging
+          p12-password: "password" 
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: "ae_baker_${{ github.ref_name }}.zxp"
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,19 @@
+{
+  "name": "ae-property-baker",
+  "version": "1.0.0",
+  "description": "After Effects Property Baker & Expression Manager",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "after-effects",
+    "cep",
+    "extension",
+    "keyframe",
+    "baker",
+    "expression"
+  ],
+  "author": "",
+  "license": "MIT"
+}
