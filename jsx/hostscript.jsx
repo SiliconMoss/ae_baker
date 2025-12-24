@@ -2,6 +2,8 @@
     After Effects Property Baker - ExtendScript Logic
 */
 
+#include "json2.jsx"
+
 var propertyBaker = (function () {
 
     // Helper to get all selected layers in active comp
