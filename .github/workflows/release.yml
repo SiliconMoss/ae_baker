@@ -7,31 +7,33 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Download ZXPSignCmd
+        shell: pwsh
         run: |
-          mkdir -p bin
-          curl -L -o bin/ZXPSignCmd "https://github.com/Adobe-CEP/CEP-Resources/raw/master/ZXPSignCmd/64bit/linux/ZXPSignCmd"
-          chmod +x bin/ZXPSignCmd
+          New-Item -ItemType Directory -Force -Path bin
+          Invoke-WebRequest -Uri "https://github.com/Adobe-CEP/CEP-Resources/raw/refs/heads/master/ZXPSignCMD/4.1.3/x64/ZXPSignCmd.exe" -OutFile bin/ZXPSignCmd.exe
 
       - name: Prepare Extension Folder
+        shell: pwsh
         run: |
-          mkdir -p dist/ae_baker
-          cp -r CSXS index.html styles.css js jsx dist/ae_baker/
-          # Clean up any development-only files
-          rm -f dist/ae_baker/.debug
+          New-Item -ItemType Directory -Force -Path dist/ae_baker
+          Copy-Item -Path "CSXS", "index.html", "styles.css", "js", "jsx" -Destination "dist/ae_baker" -Recurse -Force
+          if (Test-Path "dist/ae_baker/.debug") { Remove-Item "dist/ae_baker/.debug" -Force }
 
       - name: Create Self-Signed Certificate
+        shell: pwsh
         run: |
-          ./bin/ZXPSignCmd -selfSignedCert US NY "Antigravity" "AE Baker" password cert.p12
+          .\bin\ZXPSignCmd.exe -selfSignedCert US NY "Antigravity" "AE Baker" password cert.p12
           
       - name: Sign and Package ZXP
+        shell: pwsh
         run: |
-          ./bin/ZXPSignCmd -sign dist/ae_baker ae_baker_${{ github.ref_name }}.zxp cert.p12 password -tsa http://timestamp.digicert.com
+          .\bin\ZXPSignCmd.exe -sign dist/ae_baker ae_baker_${{ github.ref_name }}.zxp cert.p12 password -tsa http://timestamp.digicert.com
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
