@@ -19,8 +19,7 @@ A compact and efficient After Effects panel for baking property keyframes and ma
 ### Easy Installation (Recommended)
 1. Download the latest `.zxp` from the [Releases](https://github.com/SiliconMoss/ae_baker/releases) page.
 2. Install it using a ZXP Installer (like [Anastasiy's Extension Manager](https://install.anastasiy.com/) or [ZXP Installer](https://zxpinstaller.com/)).
-3. **Note**: Since this extension is self-signed, you still need to enable **PlayerDebugMode** on your system for After Effects to load it. See the [Manual Installation](#manual-installation-for-developers) section for details on how to do this.
-4. In After Effects, go to **Window > Extensions > AE Property Baker**.
+3. In After Effects, go to **Window > Extensions > AE Property Baker**.
 
 ### Manual Installation (For Developers)
 1. Close After Effects.
